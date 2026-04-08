@@ -26,7 +26,7 @@
   args:
     executable: /bin/bash
   when: grub_check.rc != 0 and ansible_os_family == "RedHat"
-  register: grub_update_result
+  register: grub_update_result_redhat
 
 - name: Update GRUB configuration (Debian)
   shell: update-grub

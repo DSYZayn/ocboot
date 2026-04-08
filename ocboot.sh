@@ -84,16 +84,16 @@ mkdir -p "$HOME/.kube"
 # their original absolute paths.
 extra_installer_volumes=()
 prev_arg=""
-declare -A _mounted_installer_dirs
+declare -A mounted_installer_dirs
 for arg in "$@"; do
     case "$prev_arg" in
         --nvidia-driver-installer-path|--cuda-installer-path)
             # Only handle absolute paths that are not already under $(pwd)
-            if [[ "$arg" == /* ]] && [[ "$arg" != "$(pwd)/"* ]]; then
+            if [[ "$arg" == /* ]] && [[ "${arg#$(pwd)/}" == "$arg" ]]; then
                 _dir="$(dirname "$arg")"
-                if [[ -z "${_mounted_installer_dirs[$_dir]+x}" ]]; then
+                if [[ -z "${mounted_installer_dirs[$_dir]+x}" ]]; then
                     extra_installer_volumes+=(-v "$_dir:$_dir:ro")
-                    _mounted_installer_dirs[$_dir]=1
+                    mounted_installer_dirs[$_dir]=1
                 fi
             fi
             ;;
