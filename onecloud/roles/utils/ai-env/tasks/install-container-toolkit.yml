@@ -9,20 +9,20 @@
     container_toolkit_installed: "{{ toolkit_check.rc == 0 }}"
 
 - block:
-  - name: Add NVIDIA Container Toolkit repository
+  - name: Add NVIDIA Container Toolkit repository (RedHat)
     copy:
       src: nvidia-container-toolkit.repo
       dest: /etc/yum.repos.d/nvidia-container-toolkit.repo
       mode: '0644'
     become: true
 
-  - name: Enable NVIDIA Container Toolkit experimental repository
+  - name: Enable NVIDIA Container Toolkit experimental repository (RedHat)
     shell: sudo yum-config-manager --enable nvidia-container-toolkit-experimental
     become: true
     args:
       executable: /bin/bash
 
-  - name: Install NVIDIA Container Toolkit
+  - name: Install NVIDIA Container Toolkit (RedHat)
     package:
       name: nvidia-container-toolkit-1.17.8-1
       state: present
@@ -30,4 +30,46 @@
 
   - debug: msg="NVIDIA Container Toolkit installed successfully"
 
-  when: not container_toolkit_installed | default(false)
+  when: not container_toolkit_installed | default(false) and ansible_os_family == "RedHat"
+
+- block:
+  - name: Install curl and gpg prerequisites (Debian)
+    apt:
+      name:
+        - curl
+        - gpg
+      state: present
+      update_cache: yes
+    become: true
+
+  - name: Add NVIDIA Container Toolkit GPG key (Debian)
+    shell: |
+      curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+        gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+    become: true
+    args:
+      executable: /bin/bash
+
+  - name: Add NVIDIA Container Toolkit apt repository (Debian)
+    shell: |
+      curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+        sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+        tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    become: true
+    args:
+      executable: /bin/bash
+
+  - name: Update apt cache (Debian)
+    apt:
+      update_cache: yes
+    become: true
+
+  - name: Install NVIDIA Container Toolkit (Debian)
+    apt:
+      name: nvidia-container-toolkit
+      state: present
+    become: true
+
+  - debug: msg="NVIDIA Container Toolkit installed successfully"
+
+  when: not container_toolkit_installed | default(false) and ansible_os_family == "Debian"
