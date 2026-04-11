@@ -7,7 +7,7 @@
 
 - name: Check local installation files
   include_tasks: check-local-files.yml
-  when: nvidia_driver_installer_path is defined and cuda_installer_path is defined
+  when: nvidia_driver_installer_path is defined
 
 - name: Install NVIDIA driver (if installer path provided)
   include_tasks: install-nvidia-driver.yml
